@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
-import {fromEvent, noop, Observable, timer} from "rxjs";
+import {Component, OnInit} from '@angular/core';
+import {map, noop} from "rxjs";
+import {createHttpObservable} from "../common/util";
 
 @Component({
   selector: 'app-about',
@@ -8,47 +9,30 @@ import {fromEvent, noop, Observable, timer} from "rxjs";
 })
 export class AboutComponent implements OnInit {
 
-  constructor() { }
+  constructor() {
+  }
 
   ngOnInit(): void {
-     const interval = timer(3000, 1000)
+    const http$ = createHttpObservable('/api/courses');
 
-    const stopWatch = interval.subscribe(val => console.log("stream 1:" + val))
+    const courses = http$.pipe(
+      map((res: any) => Object.values(res['payload'])
+      ));
 
-    setTimeout(() => {
-        stopWatch.unsubscribe()
-      }, 5000
+    // map
+    courses.subscribe(
+      courses => console.log(courses),
+      noop,
+      () => console.log('completed')
     );
-
-    const click = fromEvent(document, 'click');
-
-    click.subscribe(
-      evt => console.log(evt),
-
-      err => console.log(err),
-
-      () => console.log("completed")
-    );
-
-    // TODO HERE CREATED OWN OBSERVABLE
-    const http$ = Observable.create(observer => {
-        fetch('/api/courses').then(response => {
-          return response.json();
-        }).then(body => {
-          observer.next(body);
-
-          observer.complete();
-        }).catch(err => {
-          observer.error(err);
-        })
-    })
 
     http$.subscribe(
       courses => console.log(courses),
       noop,
       () => console.log('completed')
-
     );
+
   }
+
 
 }
