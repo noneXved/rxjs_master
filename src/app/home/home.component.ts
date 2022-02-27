@@ -26,7 +26,10 @@ export class HomeComponent implements OnInit {
 
     // map
     courses.subscribe(
-      courses => console.log(courses),
+      courses => {
+        this.beginnerCourses = courses.filter(course => course.category == "BEGINNER")
+        this.advancedCourses = courses.filter(course => course.category == "ADVANCED")
+      },
       noop,
       () => console.log('completed')
     );
