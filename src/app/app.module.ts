@@ -5,8 +5,12 @@ import { AppComponent } from './app.component';
 import { AboutComponent } from './about/about.component';
 import { CourseComponent } from './course/course.component';
 import { CourseDialogComponent } from './course-dialog/course-dialog.component';
-import { CousesCardListComponent } from './couses-card-list/couses-card-list.component';
 import { HomeComponent } from './home/home.component';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { CoursesCardListComponent } from './courses-card-list/courses-card-list.component';
+import {RouterModule} from "@angular/router";
+import {MatTabsModule} from "@angular/material/tabs";
+import {MatCardModule} from "@angular/material/card";
 
 @NgModule({
   declarations: [
@@ -14,11 +18,15 @@ import { HomeComponent } from './home/home.component';
     AboutComponent,
     CourseComponent,
     CourseDialogComponent,
-    CousesCardListComponent,
-    HomeComponent
+    HomeComponent,
+    CoursesCardListComponent
   ],
   imports: [
-    BrowserModule
+    BrowserModule,
+    BrowserAnimationsModule,
+    RouterModule,
+    MatTabsModule,
+    MatCardModule
   ],
   providers: [],
   bootstrap: [AppComponent]
