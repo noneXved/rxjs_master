@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import {concat, interval, map, merge, of} from 'rxjs';
+import {createHttpObservable} from "../common/util";
 
 @Component({
   selector: 'about',
@@ -26,6 +27,17 @@ export class AboutComponent implements OnInit {
     const resultMerge = merge(interval1, interval2);
     console.log(resultMerge)
 
+    // unsubscribe - if stream is never ending, unsubscribe automatically ends it
+    const intervalUnsub = interval(1000);
+    const sub = intervalUnsub.subscribe(console.log)
 
+    setTimeout(() => sub.unsubscribe(), 5000)
+
+
+    const http = createHttpObservable('/api/courses');
+
+    const subscribe = http.subscribe(console.log)
+
+    setTimeout(() => subscribe.unsubscribe(), 0)
   }
 }
