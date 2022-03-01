@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { createHttpObservable } from '../common/util';
-import { map, Observable, shareReplay, tap } from 'rxjs';
+import { catchError, map, Observable, of, shareReplay, tap } from 'rxjs';
 import { Course } from '../model/course';
 
 @Component({
@@ -18,7 +18,20 @@ export class HomeComponent implements OnInit {
     const courses = http$.pipe(
       tap(() => console.log('The request was executed')),
       map((res: any) => Object.values(res['payload'])),
-      shareReplay()
+      shareReplay(),
+      catchError(() =>
+        of([
+          {
+            id: 0,
+            description: 'RxJs In Practice Course',
+            iconUrl: 'https://s3-us-west-1.amazonaws.com/angular-university/course-images/rxjs-in-practice-course.png',
+            courseListIcon: 'https://angular-academy.s3.amazonaws.com/main-logo/main-page-logo-small-hat.png',
+            longDescription: 'Understand the RxJs Observable pattern, learn the RxJs Operators via practical examples',
+            category: 'BEGINNER',
+            lessonsCount: 10,
+          },
+        ])
+      )
     );
 
     courses.subscribe();
