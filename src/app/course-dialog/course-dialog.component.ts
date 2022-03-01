@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Course } from '../model/course';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import * as moment from 'moment';
-import {concatMap, filter, mergeMap} from 'rxjs';
+import {concatMap, exhaustMap, filter, fromEvent, mergeMap} from 'rxjs';
 import { fromPromise } from 'rxjs-compat/observable/fromPromise';
 
 @Component({
@@ -50,22 +50,17 @@ export class CourseDialogComponent implements AfterViewInit, OnInit {
         concatMap((changes) => this.saveCourse(changes))
       )
       .subscribe();
-
-    // mergeMap
-    // takes valueChanges
-    // -> creating new observable
-    // -> not waiting for ended previous observable
-    // -> automatically send & subscribing
-    // -> concatenating them in random order
-    this.form.valueChanges
-      .pipe(
-        filter(() => this.form.valid),
-        mergeMap((changes) => this.saveCourse(changes))
-      )
-      .subscribe();
   }
 
-  ngAfterViewInit() {}
+  ngAfterViewInit() {
+    // exhaustMap
+    // it ignores events until last one is not completed
+
+    fromEvent(this.saveButton.nativeElement, 'click')
+      .pipe(
+        exhaustMap(() => this.saveCourse(this.form.value)))
+      .subscribe();
+  }
 
   saveCourse(changes) {
     return fromPromise(
