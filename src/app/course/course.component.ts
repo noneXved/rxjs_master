@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import {concat, debounceTime, distinctUntilChanged, fromEvent, map, Observable, switchMap} from 'rxjs';
+import {concat, debounceTime, distinctUntilChanged, fromEvent, map, Observable, startWith, switchMap} from 'rxjs';
 import { Course } from '../model/course';
 import { Lesson } from '../model/lesson';
 import { createHttpObservable } from '../common/util';
@@ -28,9 +28,10 @@ export class CourseComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-     const searchLessons = fromEvent(this.input.nativeElement, 'keyup')
+     this.lessons = fromEvent(this.input.nativeElement, 'keyup')
       .pipe(
         map((event: any) => event.target.value),
+        startWith(''),
         // it waits a period of time in example 0,4sec to send data
         debounceTime(400),
         // it prevent duplicates
@@ -40,9 +41,6 @@ export class CourseComponent implements OnInit, AfterViewInit {
         switchMap((search:any) => this.loadLessons(search))
       )
 
-    const initialLessons = this.loadLessons();
-
-    this.lessons = concat(initialLessons, searchLessons);
   }
 
   loadLessons(search = ''): Observable<Lesson[]> {
