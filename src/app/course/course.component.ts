@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import {concat, debounceTime, distinctUntilChanged, fromEvent, map, Observable, startWith, switchMap} from 'rxjs';
+import { fromEvent, map, Observable, startWith, throttleTime } from 'rxjs';
 import { Course } from '../model/course';
 import { Lesson } from '../model/lesson';
 import { createHttpObservable } from '../common/util';
@@ -24,30 +24,24 @@ export class CourseComponent implements OnInit, AfterViewInit {
 
     // Usage route path into Observable
     this.course = createHttpObservable(`/api/courses/1`);
-
   }
 
   ngAfterViewInit(): void {
-     this.lessons = fromEvent(this.input.nativeElement, 'keyup')
+    fromEvent(this.input.nativeElement, 'keyup')
       .pipe(
         map((event: any) => event.target.value),
         startWith(''),
-        // it waits a period of time in example 0,4sec to send data
-        debounceTime(400),
+        // debounceTime(500) -> call function if user doesn't take action for 0.5sec
+        // throttleTime(500) -> call function in every 0.5 sec
+        throttleTime(500)
         // it prevent duplicates
-        distinctUntilChanged(),
-        // TODO switchMap allows to cancel previous request to optimize
-        // if we provide some data into input it will cancel previous requests to improve app
-        switchMap((search:any) => this.loadLessons(search))
       )
-
+      .subscribe(console.log);
   }
 
   loadLessons(search = ''): Observable<Lesson[]> {
-    return createHttpObservable(
-      `/api/lessons?courseId=1&pageSize=100&filter=${search}`)
-      .pipe(
-        map((res: any) => res['payload'])
-      );
+    return createHttpObservable(`/api/lessons?courseId=1&pageSize=100&filter=${search}`).pipe(
+      map((res: any) => res['payload'])
+    );
   }
 }
