@@ -1,9 +1,10 @@
 import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { fromEvent, map, Observable, startWith, throttleTime } from 'rxjs';
+import { debounceTime, distinctUntilChanged, fromEvent, map, Observable, startWith, switchMap } from 'rxjs';
 import { Course } from '../model/course';
 import { Lesson } from '../model/lesson';
 import { createHttpObservable } from '../common/util';
+import { debug, RxJsLoggingLevel, setRxJsLoggingLevel } from '../common/debug';
 
 @Component({
   selector: 'course',
@@ -23,20 +24,21 @@ export class CourseComponent implements OnInit, AfterViewInit {
     this.courseId = this.route.snapshot.params['id'];
 
     // Usage route path into Observable
-    this.course = createHttpObservable(`/api/courses/1`);
+    this.course = createHttpObservable(`/api/courses/1`).pipe(debug(RxJsLoggingLevel.INFO, 'course value '));
+
+    setRxJsLoggingLevel(RxJsLoggingLevel.TRACE);
   }
 
   ngAfterViewInit(): void {
-    fromEvent(this.input.nativeElement, 'keyup')
-      .pipe(
-        map((event: any) => event.target.value),
-        startWith(''),
-        // debounceTime(500) -> call function if user doesn't take action for 0.5sec
-        // throttleTime(500) -> call function in every 0.5 sec
-        throttleTime(500)
-        // it prevent duplicates
-      )
-      .subscribe(console.log);
+    this.lessons = fromEvent(this.input.nativeElement, 'keyup').pipe(
+      map((event: any) => event.target.value),
+      startWith(''),
+      debug(RxJsLoggingLevel.TRACE, 'search '),
+      debounceTime(500),
+      distinctUntilChanged(),
+      switchMap((search) => this.loadLessons(search)),
+      debug(RxJsLoggingLevel.DEBUG, 'lesson value ')
+    );
   }
 
   loadLessons(search = ''): Observable<Lesson[]> {
