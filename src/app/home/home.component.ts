@@ -1,19 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { createHttpObservable } from '../common/util';
-import {
-  catchError,
-  delay,
-  delayWhen,
-  finalize,
-  map,
-  Observable,
-  of,
-  retryWhen,
-  shareReplay,
-  tap,
-  throwError, timer
-} from 'rxjs';
+import { Observable } from 'rxjs';
 import { Course } from '../model/course';
+import { StoreService } from '../common/store.service';
 
 @Component({
   selector: 'home',
@@ -24,26 +12,12 @@ export class HomeComponent implements OnInit {
   beginnerCourses: Observable<Course[]>;
   advancedCourses: Observable<Course[]>;
 
+  constructor(private storeService: StoreService) {}
   ngOnInit(): void {
-    const http$: Observable<Course[]> = createHttpObservable('/api/courses');
-
-    const courses = http$.pipe(
-      tap(() => console.log('The request was executed')),
-      map((res: any) => Object.values(res['payload'])),
-      shareReplay(),
-      retryWhen(errors => errors.pipe(
-        delayWhen(() => timer(2000))
-        // delay(2000)
-        )
-      )
-    );
+    const courses = this.storeService.courses;
 
     courses.subscribe();
-    this.beginnerCourses = courses.pipe(
-      map((courses: any) => courses.filter((course) => course.category == 'BEGINNER'))
-    );
-    this.advancedCourses = courses.pipe(
-      map((courses: any) => courses.filter((course) => course.category == 'ADVANCED'))
-    );
+    this.beginnerCourses = this.storeService.selectBeginnerCourses();
+    this.advancedCourses = this.storeService.selectAdvancedCourses();
   }
 }
